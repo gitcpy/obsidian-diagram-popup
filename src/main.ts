@@ -506,8 +506,15 @@ export default class MermaidPopupPlugin extends Plugin {
         // Add mouse wheel event for zooming
         targetElementInPopup.addEventListener('wheel', (evt) => {
             evt.preventDefault();
-            const isOut = evt.deltaY > 0;
-            this.zoomPopupAtCursor(targetElementInPopup, isOut, evt);
+
+            const userAgent = navigator.userAgent;
+            if (/Mac/.test(userAgent) && !evt.metaKey) {
+                this.panPopupAtCursor(targetElementInPopup, evt)
+            }
+            else {
+                const isOut = evt.deltaY > 0;
+                this.zoomPopupAtCursor(targetElementInPopup, isOut, evt);
+            }
         });
     }
 
@@ -683,7 +690,7 @@ export default class MermaidPopupPlugin extends Plugin {
 
     // Helper method to zoom the popup and SVG
     zoomPopup(popup: HTMLElement, isOut:boolean) {
-        this.zoomPopupCore(popup, isOut, 1, 1);
+        this.zoomPopupCore(popup, isOut, null, 1, 1);
     }
 
     // Helper method to zoom the popup at the cursor position
@@ -699,28 +706,51 @@ export default class MermaidPopupPlugin extends Plugin {
         const offsetX = evt.clientX - popupCenterX;
         const offsetY = evt.clientY - popupCenterY;
 
-        this.zoomPopupCore(popup, isOut, offsetX, offsetY);
+        this.zoomPopupCore(popup, isOut, evt, offsetX, offsetY);
     }
 
     // Helper method to zoom the popup and SVG
-    zoomPopupCore(popup: HTMLElement, isOut:boolean, offsetX: number, offsetY: number) {
+    zoomPopupCore(popup: HTMLElement, isOut: boolean, evt: WheelEvent | null, offsetX: number, offsetY: number) {
         const style = popup.win.getComputedStyle(popup);
         const matrix = style.transform === 'none' ? new DOMMatrix() : new DOMMatrixReadOnly(style.transform);
         const currentScale = matrix.a;
 
         // isOut, 1.1
-        let symbol:number = isOut ? -1:1;
-        const newScale = currentScale * (1+ symbol * parseFloat(this.settings.ZoomRatioValue));
+        let ratioValue = (isOut ? -1:1) * parseFloat(this.settings.ZoomRatioValue);
+
+        const userAgent = navigator.userAgent;
+        if (/Mac/.test(userAgent) && evt != null) {
+            ratioValue = -1 * evt.deltaY / 100;
+        }
+
+        const newScale = currentScale * (1 + ratioValue);
 
         // Adjust the translation to keep the popup centered relative to the overlay
-        const newX = matrix.m41 - offsetX * symbol * parseFloat(this.settings.ZoomRatioValue);
-        const newY = matrix.m42 - offsetY * symbol * parseFloat(this.settings.ZoomRatioValue);
+        const newX = matrix.m41 - offsetX * ratioValue;
+        const newY = matrix.m42 - offsetY * ratioValue;
 
         popup.setCssStyles({
             transformOrigin : 'center center', // Ensure scaling is centered
             transform : `translate(${newX}px, ${newY}px) scale(${newScale})`
         });
-    }    
+    }
+
+    panPopupAtCursor(popup: HTMLElement, evt: WheelEvent) {
+        if (!evt.target)
+            return;
+
+        const ele_target = evt.target as HTMLElement;
+        const style = ele_target.win.getComputedStyle(popup);
+        const matrix = style.transform === 'none' ? new DOMMatrix() : new DOMMatrixReadOnly(style.transform);
+
+        var startX = matrix.m41;
+        var startY = matrix.m42;
+
+        var initialX = startX - evt.deltaX;
+        var initialY = startY - evt.deltaY;
+
+        popup.setCssStyles({transform : `translate(${initialX}px, ${initialY}px) scale(${matrix.a})`});
+    }
 
     // Helper method to make the popup draggable
     makeDraggable(element: HTMLElement) {
