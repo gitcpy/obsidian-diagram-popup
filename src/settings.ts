@@ -208,7 +208,7 @@ class MermaidPopupSettingTab extends PluginSettingTab {
 
         // 创建第二个输入框 (Value)
         const valueInput = kvRow.createEl('input', { type: 'text', placeholder: 'Input Class Name please' });
-        const classname_fmt = 'classanme format: start with \'.\', and then \'A-Za-z0-9\' or \'-\'';
+        const classname_fmt = 'classanme format: \'A-Za-z0-9\' or \'-\' and not start with number';
         valueInput.setAttr('title', classname_fmt);
 
         // 是否容器
