@@ -139,9 +139,10 @@ export default class MermaidPopupPlugin extends Plugin {
             if (view) {
                 // 类型断言为 MarkdownView，以便访问 contentEl
                 let container = view.containerEl;
-                let targetArr = this.GetSettingsClassElementAll(container);
+                let targetArr = this.GetSettingsClassElementAll(container) as Array<[HTMLElement, string]>;
+                
                 //console.log('layout-change targetArr.length', targetArr.length);
-                if (targetArr.length == 0)
+                if (targetArr == null || targetArr.length == 0)
                 {
                     //console.log('layout-change break', targetArr.length);
                     this.RelaseWhenfileClose();
@@ -149,7 +150,7 @@ export default class MermaidPopupPlugin extends Plugin {
 
                 for(var i=0;i<targetArr.length;i++)
                 {
-                    this.addPopupButton(targetArr[i] as HTMLElement);
+                    this.addPopupButton(targetArr[i]);
                 }
 
                 this.ObserveToAddPopupButton(container);
@@ -208,11 +209,13 @@ export default class MermaidPopupPlugin extends Plugin {
             return;
         this.observer_editting = new MutationObserver((mutationsList, observer) => {
 
-            let containerArr = this.GetSettingsClassElementAll(myView);
+            let containerArr = this.GetSettingsClassElementAll(myView) as Array<[HTMLElement, string]>;                
             for(var i=0;i<containerArr.length;i++){
-                let container = containerArr[i] as HTMLElement;
-                if(this.IsClassListContains_SettingsDiagramClass(container)){
-                    this.addPopupButton(container); 
+                let container = containerArr[i] as [HTMLElement, string];
+                let isTarget = this.IsClassListContains_SettingsDiagramClass(container[0]);
+
+                if(isTarget){
+                    this.addPopupButton(container, true); 
                 }
             }
         });
@@ -224,27 +227,95 @@ export default class MermaidPopupPlugin extends Plugin {
         if (this.observer_reading)
             return;
         this.observer_reading = new MutationObserver((mutationsList, observer) => {
-            let containerArr = this.GetSettingsClassElementAll(myView);
+            let containerArr = this.GetSettingsClassElementAll(myView) as Array<[HTMLElement, string]>;;
             for(var i=0;i<containerArr.length;i++){
-                let container = containerArr[i] as HTMLElement;
-                if(this.IsClassListContains_SettingsDiagramClass(container)){
+                let container = containerArr[i] as [HTMLElement, string];
+                if(this.IsClassListContains_SettingsDiagramClass(container[0])){
                     this.addPopupButton(container); 
                 }
             }
         });
 
         this.observer_reading.observe(myView, { childList: true, subtree: true});
-    }  
-
-    GetSettingsClassElement(contentEl:HTMLElement){
-        let selector = this.GetSettingsDiagramClassNameAll().join(', ');
-        return contentEl.querySelector(selector);
-    }
-    
+    } 
+  
+    /**
+     * 转义数字开头的 class 名称
+     * @param {HTMLElement} contentEl - MD容器
+     * @return {Array<[HTMLElement, string]>} - 返回数组 目标元素 和 是否容器标志）
+     */
     GetSettingsClassElementAll(contentEl:HTMLElement){
-        let selector = this.GetSettingsDiagramClassNameAll().join(', ');
-        return contentEl.querySelectorAll(selector);
+        let selectors = this.GetSelectorAll(true);
+        selectors = selectors as string[][];
+        if (selectors == null || selectors.length ==0)
+        {
+            return null;
+        }
+
+        let targetArr: Array<[HTMLElement, string]> = [];
+        for (var i=0;i<selectors.length;i++)
+        {
+            let item = selectors[i];
+            let target = contentEl.querySelectorAll(item[0]);
+            if (target != null && target.length > 0)
+            {
+                for(var j=0;j<target.length;j++)
+                {
+                    targetArr.push([target[j] as HTMLElement, item[1]])
+                }
+            }
+        }
+
+        return targetArr;
     }
+
+    GetSelectorAll(isWithCheck:boolean=false)
+    {
+        let classnameArr = this.GetSettingsDiagramClassNameAll();
+        let arrSelector = [];
+        for(var i=0;i<classnameArr.length;i++)
+        {
+            var name = '';
+            var chk = '';
+            if (classnameArr[i].contains('|'))
+            {
+                var arr = classnameArr[i].split('|');
+                name = arr[0];
+                chk = arr[1];            
+            }
+            else{
+                name = classnameArr[i];
+            }
+
+            // 0.2.63 之前保存classname 需要带 '.', 之后保存不需要
+            // 所以这里为了兼容先清理，在添加上
+            name = '.' + name.replace('.', '');
+            if (isWithCheck)
+            {
+                arrSelector.push([name, chk]); 
+            }   
+            else{
+                arrSelector.push(name); 
+            }
+                
+        }
+        return arrSelector;
+    }
+
+    /**
+     * 转义数字开头的 class 名称
+     * @param {string} className - 要检查的 class 名称
+     * @return {string} - 转义后的 class（如果需要）
+     */
+    escapeClassName(className:string) {
+        // 如果 class 以数字开头，进行转义
+        if (/^\d/.test(className)) {
+            // 获取第一个字符的 Unicode 转义（如 "1" -> "\31"）
+            const firstChar = className.charCodeAt(0).toString(16);
+            return `\\3${firstChar} ${className.slice(1)}`;
+        }
+        return className; // 否则直接返回
+    }    
 
     GetSettingsDiagramClassNameAll(){
         let mapDiagramClassAll =  { ...this.settings.kvMapReserved, ...this.settings.kvMapDefault, ...this.settings.kvMap };
@@ -252,24 +323,46 @@ export default class MermaidPopupPlugin extends Plugin {
     }
 
     // Add a button to each Mermaid diagram for triggering the popup
-    addPopupButton(target: HTMLElement) {
+    addPopupButton(target_and_flagContainer: [HTMLElement, string], isDebug:boolean=false) {
         let {popupButtonClass} = this.getOpenBtnInMd_Mark();
 
-        let popupButton = target.previousElementSibling as HTMLElement;
+        let target = target_and_flagContainer[0];
+        
+        let popupButton;    
+        let flagContainer = target_and_flagContainer[1];
+        // 容器类，则判断 容器里 是否有弹窗按钮
+        if (flagContainer == 'true')
+        {
+            popupButton = target.querySelector('.'+popupButtonClass);
+        }
+        else{
+        // 非容器类，则判断 目标元素之前 是否有弹窗按钮
+            popupButton = target.previousElementSibling as HTMLElement;           
+        }
         // return if exist
         if (popupButton){
             this.adjustDiagramWidthAndHeight_ToContainer(target);
             return;
         }
+
         // Create the popup button
         popupButton = target.doc.createElement('div');
         popupButton.classList.add(popupButtonClass);
         popupButton.textContent = 'Open Popup';
         setIcon(popupButton, 'maximize');
         popupButton.title = 'Open Popup';
-        target.insertAdjacentElement('beforebegin', popupButton);
+
+        // 容器类，则添加到容器里
+        if (flagContainer == 'true'){
+            target.insertAdjacentElement('afterbegin', popupButton);
+        }
+        else{
+            // 非容器类, 则弹窗按钮添加到 目前之前 
+            target.insertAdjacentElement('beforebegin', popupButton);
+        }
 
         this.adjustDiagramWidthAndHeight_ToContainer(target);
+
         let container_btn = target.parentElement;
         container_btn = container_btn as HTMLElement;
         if(this.isPreviewMode())
@@ -293,7 +386,8 @@ export default class MermaidPopupPlugin extends Plugin {
         });
 
         popupButton.setCssStyles({display:'none'});
-        this.makePopupButtonDisplay_WhenHoverOnContainer(popupButton, target.parentElement as HTMLElement);
+        let activeRange = flagContainer == 'true'? target:target.parentElement;
+        this.makePopupButtonDisplay_WhenHoverOnContainer(popupButton, activeRange as HTMLElement);
     }
 
     makePopupButtonDisplay_WhenHoverOnContainer(button:HTMLElement, container:HTMLElement){
@@ -404,15 +498,23 @@ export default class MermaidPopupPlugin extends Plugin {
     }
 
     IsClassListContains_SettingsDiagramClass(ele:HTMLElement){
-        if (ele.classList == null || ele.classList.length == 0)
+        if (ele == null || ele.classList == null || ele.classList.length == 0)
             return false;
-        let classnameArr = this.GetSettingsDiagramClassNameAll();
+        let classnameArr = this.GetSelectorAll() as string[];
         for(var i=0;i<classnameArr.length;i++){
             let name = classnameArr[i];
             name = name.substring(1);
             if (ele.classList.contains(name))
                 return true;
         }
+        return false;
+    }
+
+    IsClassListContains(ele:HTMLElement, name:string){
+        if (ele == null || ele.classList == null || ele.classList.length == 0)
+            return false;
+        if (ele.classList.contains(name))
+            return true;
         return false;
     }
 

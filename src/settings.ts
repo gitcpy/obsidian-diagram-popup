@@ -208,7 +208,14 @@ class MermaidPopupSettingTab extends PluginSettingTab {
 
         // 创建第二个输入框 (Value)
         const valueInput = kvRow.createEl('input', { type: 'text', placeholder: 'Input Class Name please' });
-        valueInput.setAttr('title', 'format: start with \'.\', and then \'A-Za-z0-9\'');
+        const classname_fmt = 'classanme format: start with \'.\', and then \'A-Za-z0-9\' or \'-\'';
+        valueInput.setAttr('title', classname_fmt);
+
+        // 是否容器
+        const isContainer = kvRow.createEl('input', { type: 'checkbox' });
+        isContainer.setAttr('title', 'Please check it if the classname is the container of the object you want to control');
+        isContainer.addClass("kv-chk");
+
         // 创建保存按钮
         const saveButton = kvRow.createEl('button', { text: 'save' });
 
@@ -216,7 +223,7 @@ class MermaidPopupSettingTab extends PluginSettingTab {
         saveButton.onclick = async () => {
             const key = keyInput.value.trim();
             const value = valueInput.value.trim();
-
+            const chk = isContainer.checked
             if (key && value) {
                 // 判断 key 是否已存在
                 if(this.plugin.settings.kvMapReserved[key] || this.plugin.settings.kvMap[key] || this.plugin.settings.kvMapDefault[key] )
@@ -225,7 +232,13 @@ class MermaidPopupSettingTab extends PluginSettingTab {
                     return;
                 }
 
-                this.plugin.settings.kvMap[key] = value;
+                if(!this.isValidClassname(value))
+                {
+                    new Notice(classname_fmt);
+                    return;
+                }
+
+                this.plugin.settings.kvMap[key] = value+'|'+chk;
                 await this.plugin.saveSettings();
                 //this.displayKvMap(containerEl);
                 this.display();
@@ -234,6 +247,7 @@ class MermaidPopupSettingTab extends PluginSettingTab {
                 // 清空输入框
                 keyInput.value = '';
                 valueInput.value = '';
+                isContainer.value = '';
             } else {
                 new Notice('Input Diagram Source and Class Name please');
             }
@@ -267,6 +281,10 @@ class MermaidPopupSettingTab extends PluginSettingTab {
 
         containerEl.createEl('p', { text: '\'.diagram-popup\' is a reserved class for other plugins to work with.' })
         containerEl.createEl('p', { text: 'if you add it to the class list of your target container, it will get the functionality.' });
+    }
+    
+    isValidClassname(classname:string) {
+        return /^[A-Za-z0-9-]+$/.test(classname);
     }
 
     addClass(_container:HTMLElement, _targetElementClass:string, _class:string){
@@ -355,6 +373,7 @@ class MermaidPopupSettingTab extends PluginSettingTab {
             const headerRow = thead.createEl('tr');
             headerRow.createEl('th', { text: 'Diagram Source' });
             headerRow.createEl('th', { text: 'Class Name' });
+            headerRow.createEl('th', { text: 'Is Container' });
             headerRow.createEl("th", { text: "Actions" }); // 添加 "Actions" 标题列
 
             // 创建表格主体
@@ -366,7 +385,11 @@ class MermaidPopupSettingTab extends PluginSettingTab {
 
                 const row = tbody.createEl('tr');
                 row.createEl('td', { text: key });
-                row.createEl('td', { text: value });
+                let arrVal = value.split('|');
+                let val = arrVal[0].replace('.', '');
+                let chk = arrVal[1] == "true" ? 'Y' :'';
+                row.createEl('td', { text: val });
+                row.createEl('td', { text: chk });
                 // 添加删除按钮
                 const actionsTd = row.createEl("td");
 

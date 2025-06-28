@@ -55,10 +55,12 @@ div.mermaid-popup-button, div.mermaid-popup-button-reading {
     border-radius: 4px;
     cursor: move; /* 鼠标显示为拖动图标 */
     z-index: 9999;
+
+    background-color: rgb(92, 92, 92, 0.4);
 }
 
 div.mermaid-popup-button:hover, div.mermaid-popup-button-reading:hover {
-    background-color: rgb(92, 92, 92, 0.1); /* 鼠标悬停时颜色变化 */
+    background-color: rgb(92, 92, 92, 0.8); /* 鼠标悬停时颜色变化 */
     cursor:default;
 }
 
@@ -122,6 +124,11 @@ div.mermaid-popup-button:hover, div.mermaid-popup-button-reading:hover {
 .kv-row input {
     margin-right: 10px;
     width: 200px;
+}
+
+.kv-row .kv-chk {
+    margin-right: 10px;
+    width: 20px;
 }
 
 /* 保存按钮的样式 */
