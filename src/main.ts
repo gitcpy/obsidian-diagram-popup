@@ -343,6 +343,9 @@ export default class MermaidPopupPlugin extends Plugin {
         if(this.isPreviewMode() && this.isParentEditting(target))
             return;
 
+        if(!this.isPreviewMode() && this.isParentReading(target))
+            return;
+
         let {popupButtonClass} = this.getOpenBtnInMd_Mark();
         let {popupButtonClass_edit} = this.getOpenBtnInMd_Mark_editMode();
 
@@ -441,14 +444,15 @@ export default class MermaidPopupPlugin extends Plugin {
         });
         
         container.addEventListener('mouseleave', () => {
-            button.setCssStyles({display:'none'});
+            button.setCssStyles({display:'block'});
         });
     }
 
     setPopupBtnPos(btn: HTMLElement, target: HTMLElement){
 
         btn.setCssStyles({
-            right: this.settings.open_btn_pos_x + 'px'
+            right: this.settings.open_btn_pos_x + 'px',
+            top: this.settings.open_btn_pos_y + 'px'
         });
 
         // let w_b = this.getWidth(btn);
