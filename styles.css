@@ -51,7 +51,7 @@ div.mermaid-popup-button, div.mermaid-popup-button-reading {
     width: 30px;
     height: 26px;
 
-    padding: 4px 3px 3px 6px;
+    padding: 3px 0px 3px 5px;
     border-radius: 4px;
     cursor: move; /* 鼠标显示为拖动图标 */
     z-index: 9999;
