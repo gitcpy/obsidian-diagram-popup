@@ -178,20 +178,23 @@ class MermaidPopupSettingTab extends PluginSettingTab {
 
         // 开启弹窗按钮位置
         let title_btn_pos = containerEl.createEl('h2', { text: 'Open Popup Button Relative Position Init' });
-        title_btn_pos.classList.add('config-text');   
+        title_btn_pos.classList.add('config-text');
         
+        // x 轴相对位置
         const kvRow_open_btn = containerEl.createDiv({ cls: 'kv-row open_btn_pos' });
         this.slideInput(kvRow_open_btn, "x:", this.plugin.settings.open_btn_pos_x,  (val)=>{this.plugin.settings.open_btn_pos_x=val}, '1', '500', 'px');
-        //this.slideInput(kvRow_open_btn, "y:", this.plugin.settings.open_btn_pos_y, (val)=>{this.plugin.settings.open_btn_pos_y=val});
-        // this.setInfo(kvRow_open_btn, 'Click for tips on Open Popup Button Relative Position Init Setting.',
-        //     'Open Popup Button Relative Position Init Setting',
-        //     'The origin of open popup button relative position, is at top left of the diagram container.' +
-        //             'In the setting, x represents the width ratio from the origin, and y represents the height ratio from that.'
-        // ) 
         this.setInfo(kvRow_open_btn, 'Click for tips on Open Popup Button Relative Position Init Setting.',
             'Open Popup Button Relative Position Init Setting',
             'x represents the pixels to the right edge of the diagram container.'
-        )       
+        )    
+
+        // y 轴相对位置
+        const kvRow_open_btn_y = containerEl.createDiv({ cls: 'kv-row open_btn_pos' });
+        this.slideInput(kvRow_open_btn_y, "y:", this.plugin.settings.open_btn_pos_y,  (val)=>{this.plugin.settings.open_btn_pos_y=val}, '1', '500', 'px');
+        this.setInfo(kvRow_open_btn_y, 'Click for tips on Open Popup Button Relative Position Init Setting.',
+            'Open Popup Button Relative Position Init Setting',
+            'y represents the pixels to the top edge of the diagram container.'
+        )         
 
         // Add New Diagram
         let title = containerEl.createEl('h2', { text: 'Add New Diagram' });
