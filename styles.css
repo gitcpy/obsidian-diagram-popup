@@ -56,7 +56,8 @@ div.mermaid-popup-button, div.mermaid-popup-button-reading {
     cursor: move; /* 鼠标显示为拖动图标 */
     z-index: 9999;
 
-    background-color: rgb(92, 92, 92, 0.4);
+    background-color: rgba(206, 206, 206, 0.4);
+    border: 1px var(--text-muted) solid;
 }
 
 div.mermaid-popup-button:hover, div.mermaid-popup-button-reading:hover {
