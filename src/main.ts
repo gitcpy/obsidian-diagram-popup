@@ -203,6 +203,19 @@ export default class MermaidPopupPlugin extends Plugin {
         }
         return {popupButtonClass, popupButtonClass_container}
     }
+
+    getOpenBtnInMd_Mark_editMode(){
+        let popupButtonClass_edit = this.class_openPopupBtn;
+        let popupButtonClass_container_edit = this.class_openPopupBtn_container;
+        return {popupButtonClass_edit, popupButtonClass_container_edit}
+    }
+
+    getOpenBtnInMd_Mark_readMode(){
+        let popupButtonClass_read = this.class_openPopupBtnReading;
+        let  popupButtonClass_container_read = this.class_openPopupBtnReading_container;
+        return {popupButtonClass_read, popupButtonClass_container_read}
+    }    
+
     // monitor new element add to edit view 
     ObserveToAddPopupButton(myView: HTMLElement){
         if (this.observer_editting)
@@ -324,26 +337,38 @@ export default class MermaidPopupPlugin extends Plugin {
 
     // Add a button to each Mermaid diagram for triggering the popup
     addPopupButton(target_and_flagContainer: [HTMLElement, string], isDebug:boolean=false) {
-        let {popupButtonClass} = this.getOpenBtnInMd_Mark();
-
         let target = target_and_flagContainer[0];
+
+        // 切换模式时，如判断原模式的目标，则退出当前方法        
+        if(this.isPreviewMode() && this.isParentEditting(target))
+            return;
+
+        let {popupButtonClass} = this.getOpenBtnInMd_Mark();
+        let {popupButtonClass_edit} = this.getOpenBtnInMd_Mark_editMode();
+
         
-        let popupButton;    
-        let flagContainer = target_and_flagContainer[1];
+        
+        let popupButton;   
+        let popupButton_edit; 
+        let flagContainer = target_and_flagContainer[1] == 'true';
         // 容器类，则判断 容器里 是否有弹窗按钮
-        if (flagContainer == 'true')
+        if (flagContainer)
         {
             popupButton = target.querySelector('.'+popupButtonClass);
+            popupButton_edit = target.querySelector('.'+popupButtonClass_edit);
         }
         else{
         // 非容器类，则判断 目标元素之前 是否有弹窗按钮
             popupButton = target.previousElementSibling as HTMLElement;           
         }
+
+        let targetContainer = flagContainer? target:target.parentElement as HTMLElement;
+
         // return if exist
-        if (popupButton){
-            this.adjustDiagramWidthAndHeight_ToContainer(target);
+        if (popupButton || (flagContainer && popupButton_edit) ){
+            this.adjustDiagramWidthAndHeight_ToContainer(targetContainer);
             return;
-        }
+        }        
 
         // Create the popup button
         popupButton = target.doc.createElement('div');
@@ -353,7 +378,7 @@ export default class MermaidPopupPlugin extends Plugin {
         popupButton.title = 'Open Popup';
 
         // 容器类，则添加到容器里
-        if (flagContainer == 'true'){
+        if (flagContainer){
             target.insertAdjacentElement('afterbegin', popupButton);
         }
         else{
@@ -361,13 +386,19 @@ export default class MermaidPopupPlugin extends Plugin {
             target.insertAdjacentElement('beforebegin', popupButton);
         }
 
-        this.adjustDiagramWidthAndHeight_ToContainer(target);
+        this.adjustDiagramWidthAndHeight_ToContainer(targetContainer);
 
-        let container_btn = target.parentElement;
-        container_btn = container_btn as HTMLElement;
         if(this.isPreviewMode())
-            container_btn.setCssStyles({position:'relative'});
-        this.setPopupBtnPos(popupButton, container_btn);
+            targetContainer.setCssStyles({position:'relative'});
+
+        if(flagContainer)
+        {
+            let target = targetContainer.querySelector('img') as HTMLElement;
+            this.setPopupBtnPos(popupButton, target);
+
+        }else{
+            this.setPopupBtnPos(popupButton, targetContainer);
+        }
 
         // bind click to popup
         this.registerDomEvent(target, 'click', this.handleMermaidClick);
@@ -386,8 +417,22 @@ export default class MermaidPopupPlugin extends Plugin {
         });
 
         popupButton.setCssStyles({display:'none'});
-        let activeRange = flagContainer == 'true'? target:target.parentElement;
-        this.makePopupButtonDisplay_WhenHoverOnContainer(popupButton, activeRange as HTMLElement);
+        
+        this.makePopupButtonDisplay_WhenHoverOnContainer(popupButton, targetContainer);
+    }
+
+    isParentReading(ele:HTMLElement){
+        let parentClass = 'markdown-reading-view';
+        return this.isParent(ele, parentClass)
+    }
+
+    isParentEditting(ele:HTMLElement){
+        let parentClass = 'markdown-source-view';
+        return this.isParent(ele, parentClass)
+    }
+
+    isParent(ele:HTMLElement, parentClass:string){
+        return ele.closest(`.${parentClass}`) !== null
     }
 
     makePopupButtonDisplay_WhenHoverOnContainer(button:HTMLElement, container:HTMLElement){
