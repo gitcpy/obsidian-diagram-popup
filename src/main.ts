@@ -100,6 +100,8 @@ export default class MermaidPopupPlugin extends Plugin {
     class_openPopupBtnReading='mermaid-popup-button-reading';
     class_openPopupBtn_container='mermaid-popup-button-container';
     class_openPopupBtnReading_container='mermaid-popup-button-reading-container';
+    class_md_containerRead = 'markdown-reading-view';
+    class_md_containerEdit = 'markdown-source-view';
     async onload() {
         console.log(`Loading ${this.manifest.name} ${this.manifest.version}`);
 
@@ -349,8 +351,6 @@ export default class MermaidPopupPlugin extends Plugin {
         let {popupButtonClass} = this.getOpenBtnInMd_Mark();
         let {popupButtonClass_edit} = this.getOpenBtnInMd_Mark_editMode();
 
-        
-        
         let popupButton;   
         let popupButton_edit; 
         let flagContainer = target_and_flagContainer[1] == 'true';
@@ -366,41 +366,53 @@ export default class MermaidPopupPlugin extends Plugin {
         }
 
         let targetContainer = flagContainer? target:target.parentElement as HTMLElement;
-
         // return if exist
-        if (popupButton || (flagContainer && popupButton_edit) ){
+        if (popupButton || (flagContainer && popupButton_edit)){
             this.adjustDiagramWidthAndHeight_ToContainer(targetContainer);
             return;
-        }        
+        } 
+        
+        let coreEle = flagContainer ? this.getCorElement(targetContainer):target;
+
+        this.create_open_button(target_and_flagContainer, isDebug);
+    }
+
+
+
+    create_open_button(target_and_flagContainer: [HTMLElement, string], isDebug:boolean=false){
+
+        let {popupButtonClass} = this.getOpenBtnInMd_Mark();
+        let target = target_and_flagContainer[0];
+        let flagContainer = target_and_flagContainer[1] == 'true';
+        let targetContainer = flagContainer? target:target.parentElement as HTMLElement;
 
         // Create the popup button
-        popupButton = target.doc.createElement('div');
+        let popupButton = targetContainer.doc.createElement('div');
         popupButton.classList.add(popupButtonClass);
         popupButton.textContent = 'Open Popup';
         setIcon(popupButton, 'maximize');
         popupButton.title = 'Open Popup';
 
-        // 容器类，则添加到容器里
-        if (flagContainer){
-            target.insertAdjacentElement('afterbegin', popupButton);
+        let coreEle = flagContainer ? this.getCorElement(targetContainer):target;
+        // 找不到图片
+        if (coreEle == null)
+        {
+            return;
         }
-        else{
-            // 非容器类, 则弹窗按钮添加到 目前之前 
-            target.insertAdjacentElement('beforebegin', popupButton);
-        }
+        // 插入位置
+        coreEle.insertAdjacentElement('beforebegin', popupButton);
 
-        this.adjustDiagramWidthAndHeight_ToContainer(targetContainer);
+        //this.adjustDiagramWidthAndHeight_ToContainer(targetContainer);
 
         if(this.isPreviewMode())
             targetContainer.setCssStyles({position:'relative'});
 
-        if(flagContainer)
+        if (flagContainer)
         {
-            let target = targetContainer.querySelector('img') as HTMLElement;
-            this.setPopupBtnPos(popupButton, target);
-
-        }else{
-            this.setPopupBtnPos(popupButton, targetContainer);
+            this.setPopupBtnPos_forContainer(popupButton, coreEle, targetContainer);
+        }else
+        {
+            this.setPopupBtnPos(popupButton, coreEle, targetContainer);
         }
 
         // bind click to popup
@@ -424,14 +436,18 @@ export default class MermaidPopupPlugin extends Plugin {
         this.makePopupButtonDisplay_WhenHoverOnContainer(popupButton, targetContainer);
     }
 
+    getCorElement(eleContainer:HTMLElement){
+        return eleContainer.querySelector('img') as HTMLElement;
+    }
+
     isParentReading(ele:HTMLElement){
         let parentClass = 'markdown-reading-view';
-        return this.isParent(ele, parentClass)
+        return this.isParent(ele, this.class_md_containerRead)
     }
 
     isParentEditting(ele:HTMLElement){
-        let parentClass = 'markdown-source-view';
-        return this.isParent(ele, parentClass)
+        
+        return this.isParent(ele, this.class_md_containerEdit)
     }
 
     isParent(ele:HTMLElement, parentClass:string){
@@ -448,37 +464,41 @@ export default class MermaidPopupPlugin extends Plugin {
         });
     }
 
-    setPopupBtnPos(btn: HTMLElement, target: HTMLElement){
+    setPopupBtnPos_forContainer(btn: HTMLElement, coreEle: HTMLElement, containerEle: HTMLElement){
+
+         containerEle.setCssStyles({
+            display: 'inline-block',
+            position: 'relative'
+        });       
+
+        let x = this.settings.open_btn_pos_x;
+        let y = this.settings.open_btn_pos_y;
 
         btn.setCssStyles({
-            right: this.settings.open_btn_pos_x + 'px',
-            top: this.settings.open_btn_pos_y + 'px'
+            right : x + 'px',
+            top : y + 'px',
+            display:''
         });
 
-        // let w_b = this.getWidth(btn);
-        // let w = this.getWidth(target);
-        // let x_setting = this.settings.open_btn_pos_x;
-        // let left = this.getWidth(target) * parseFloat(x_setting) / 100;
-        // left = (left+w_b) > w ? (left-w_b) : left;
-        // left = left < 0 ? 0 : left;
-        // btn.setCssStyles({
-        //     left: this.settings.open_btn_pos_x + '%'
-        // });
+    }
 
-        // let h_b = this.getHeight(btn);
-        // let h = this.getHeight(target);
-        // let y_setting = this.settings.open_btn_pos_y;
-        // let top = this.getHeight(target) * parseFloat(y_setting) / 100
-        // top = (top+h_b) > h ? (top-h_b) : top;
-        // top = top < 0 ? 0 : top;
-        // btn.setCssStyles({
-        //     top: top + 'px'
-        // });
+    getAppContainerRect(ele:HTMLElement){
+        return ele.doc.getElementsByClassName('app-container')[0].getBoundingClientRect();
+    }
+
+    setPopupBtnPos(btn: HTMLElement, coreEle: HTMLElement, containerEle: HTMLElement){
+        let x = this.settings.open_btn_pos_x;
+        let y = this.settings.open_btn_pos_y;
+
+        btn.setCssStyles({
+            right: x + 'px',
+            top: y + 'px'
+        });
     }
 
     adjustDiagramWidthAndHeight_ToContainer(container: HTMLElement){
 
-        let dig_Ele = this.getDiagramElement(container) as HTMLElement;
+        let dig_Ele = this.getCoreElement(container) as HTMLElement;
         if (!dig_Ele)
             return;
 
@@ -486,6 +506,7 @@ export default class MermaidPopupPlugin extends Plugin {
         let des_h = this.getHeight(dig_Ele);
 
         let container_width = this.getWidth(container);
+
         let rate_by_width = 1;
         if (des_w > container_width) // 图表宽超容器
         {
@@ -522,7 +543,7 @@ export default class MermaidPopupPlugin extends Plugin {
         return parseFloat(ele.getCssPropertyValue('height'));
     }
 
-    getDiagramElement(container: HTMLElement){
+    getCoreElement(container: HTMLElement){
         let diagramSvg = Array.from(container.children).find(child => child.tagName.toLowerCase() === 'svg');
         if (diagramSvg){
             return diagramSvg;
@@ -607,16 +628,13 @@ export default class MermaidPopupPlugin extends Plugin {
         // copy target
         let targetElementClone = targetElement.cloneNode(true);
         let targetElementInPopup = targetElementClone as HTMLElement;
-        let childElement = targetElementInPopup.querySelector('.' + this.class_openPopupBtn); // 获取需要删除的子元素
-        if (childElement) {
-            targetElementInPopup.removeChild(childElement); // 从父元素中删除子元素
+        let childElementArr = targetElementInPopup.querySelectorAll('.' + this.class_openPopupBtn); // 获取需要删除的子元素
+        if (childElementArr){
+            childElementArr.forEach(child => {
+            child.remove(); // 直接从DOM中移除元素，不需要知道父元素
+            });
         }
-        else{
-            childElement = targetElementInPopup.querySelector('.' + this.class_openPopupBtnReading); 
-            if (childElement) {
-                targetElementInPopup.removeChild(childElement); 
-            }
-        }
+
         targetElementInPopup.classList.add('popup-content', 'draggable', 'resizable');
 
         let _doc = targetElementInPopup.doc;
@@ -708,13 +726,13 @@ export default class MermaidPopupPlugin extends Plugin {
 
         let width_tar_md = this.getWidth(_targetElement);
         let height_tar_md = this.getHeight(_targetElement);   
-        let _diag_md = this.getDiagramElement(_targetElement) as HTMLElement;
+        let _diag_md = this.getCoreElement(_targetElement) as HTMLElement;
         let width_diag_md = this.getWidth(_diag_md);
         let height_diag_md = this.getHeight(_diag_md);
 
         let width_tar_inpopup = this.getWidth(_targetElementInPopup);
         let height_tar_inpopup = this.getHeight(_targetElementInPopup);   
-        let _diag_inpopup = this.getDiagramElement(_targetElementInPopup) as HTMLElement;
+        let _diag_inpopup = this.getCoreElement(_targetElementInPopup) as HTMLElement;
         let width_diag_inpopup = this.getWidth(_diag_inpopup);
         let height_diag_inpopup = this.getHeight(_diag_inpopup);
 
