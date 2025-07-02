@@ -63,6 +63,8 @@ div.mermaid-popup-button, div.mermaid-popup-button-reading {
 div.mermaid-popup-button:hover, div.mermaid-popup-button-reading:hover {
     background-color: rgb(92, 92, 92, 0.8); /* 鼠标悬停时颜色变化 */
     cursor:default;
+    border-color: rgba(206, 206, 206, 0.4);
+    color: rgba(206, 206, 206, 0.4);
 }
 
 /*操作弹窗按钮*/
