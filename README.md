@@ -67,3 +67,31 @@ Click "Add Plugin", A fews seconds later, the installing will be completed.
   <img src='https://github.com/gitcpy/obsidian-diagram-pop/blob/main/gifs/setting-s.png' />
   
     These settings are for the users to custom the plugin.
+
+- Example 
+
+  - Add Image
+
+    1. Press **shift + ctrl + i** to find target class Name to add to target settings.  
+      <img src='https://github.com/gitcpy/obsidian-diagram-popup/blob/main/gifs/eg-1-1-find%20class%20name.jpg' height="600" />
+
+    2. This example is for imgage. Because image is not a container, and its container is at up level, please check the container checkobx.
+       and don't check if the target is a container keep the core element. 
+      <img src='https://github.com/gitcpy/obsidian-diagram-popup/blob/main/gifs/eg-1-2-1-add%20class%20name%20to%20setting.jpg' />
+      <img src='https://github.com/gitcpy/obsidian-diagram-popup/blob/main/gifs/eg-1-2-2-add%20class%20name%20to%20setting.jpg' />
+
+    3. We could see the open popup button after the md file reopen.
+      <img src='https://github.com/gitcpy/obsidian-diagram-popup/blob/main/gifs/eg-1-3-we%20coudl%20see%20the%20button.jpg' />
+      Here is the image popup.
+      <img src='https://github.com/gitcpy/obsidian-diagram-popup/blob/main/gifs/eg-1-4-img%20in%20popup.jpg' height='400' />
+
+    4. Set image max height in md tab page.
+       <img src='https://github.com/gitcpy/obsidian-diagram-popup/blob/main/gifs/eg-1-5-max%20height.jpg' />
+       Image after height setting.
+       <img src='https://github.com/gitcpy/obsidian-diagram-popup/blob/main/gifs/eg-1-6-image%20matches%20the%20max%20height.jpg' height='400' />
+
+    6. Set the open button
+       Settinggs
+       <img src='https://github.com/gitcpy/obsidian-diagram-popup/blob/main/gifs/eg-1-8-settings%20of%20button%20pos.jpg' />
+       After setting
+       <img src='https://github.com/gitcpy/obsidian-diagram-popup/blob/main/gifs/eg-1-9-button%20pos%20after%20settings.jpg'  />
