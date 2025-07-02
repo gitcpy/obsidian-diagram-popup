@@ -789,6 +789,9 @@ export default class MermaidPopupPlugin extends Plugin {
         // md中， core deep 的宽度如果比 core 小，则自动左对齐
         // popin 中， core deep 的宽度如果比 core 小，则居中
         let coreDeep_in_p = this.getCoreDeepElement(containerInPopup) as HTMLElement;
+        // 若 coreDeep_in_p， 则该 目标元素 是容器，目前的目标元素 只有 core 元素， 没有 coreDeep 元素
+        if (coreDeep_in_p == null)
+            return;
         let coreDeep_in_p_w = this.getWidth(coreDeep_in_p);
         if (coreDeep_in_p_w < core_w)
         {
