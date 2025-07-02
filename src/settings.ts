@@ -42,7 +42,7 @@ class MermaidPopupSettingTab extends PluginSettingTab {
         });  
 
         let td_01_2_dg_h= row_01_popup_sz_and_dg_h_title.createEl('td');
-        let td_02_1_dg_h_title = td_01_2_dg_h.createEl('h2', { text: 'Original Diagram Height' });
+        let td_02_1_dg_h_title = td_01_2_dg_h.createEl('h2', { text: 'Original Target Height' });
         td_02_1_dg_h_title.classList.add('config-text');          
         
         const td_02_2_dg_h_val = row_02_popup_sz_and_dg_h_val.createEl('td');
@@ -78,11 +78,11 @@ class MermaidPopupSettingTab extends PluginSettingTab {
             this.plugin.saveSettings();
         });
 
-        this.setInfo(td_02_2_dg_h_val, 'Click for tips on Original Diagram Height Setting.',
-            'Original Diagram Height Setting',
+        this.setInfo(td_02_2_dg_h_val, 'Click for tips on Original Target Height Setting.',
+            'Original Target Height Setting',
             'Under proportional scaling, ' +
                     'adapt to the width of editor, ' + 
-                    'and then if the height is still greater than the value of \'Original Diagram Height\',' + 
+                    'and then if the height is still greater than the value of \'Original Target Height\',' + 
                     'it will adapt again. '
         )          
 
@@ -185,7 +185,7 @@ class MermaidPopupSettingTab extends PluginSettingTab {
         this.slideInput(kvRow_open_btn, "x:", this.plugin.settings.open_btn_pos_x,  (val)=>{this.plugin.settings.open_btn_pos_x=val}, '1', '500', 'px');
         this.setInfo(kvRow_open_btn, 'Click for tips on Open Popup Button Relative Position Init Setting.',
             'Open Popup Button Relative Position Init Setting',
-            'x represents the pixels to the right edge of the diagram container.'
+            'x represents the pixels to the right edge of the target container.'
         )    
 
         // y 轴相对位置
@@ -193,25 +193,25 @@ class MermaidPopupSettingTab extends PluginSettingTab {
         this.slideInput(kvRow_open_btn_y, "y:", this.plugin.settings.open_btn_pos_y,  (val)=>{this.plugin.settings.open_btn_pos_y=val}, '1', '500', 'px');
         this.setInfo(kvRow_open_btn_y, 'Click for tips on Open Popup Button Relative Position Init Setting.',
             'Open Popup Button Relative Position Init Setting',
-            'y represents the pixels to the top edge of the diagram container.'
+            'y represents the pixels to the top edge of the target container.'
         )         
 
-        // Add New Diagram
-        let title = containerEl.createEl('h2', { text: 'Add New Diagram' });
+        // Add New Target
+        let title = containerEl.createEl('h2', { text: 'Add New Target' });
         title.classList.add('config-text');
 
         // 添加文本说明
-        containerEl.createEl('p', { text: 'This plugin supports customing diagrams from mermaid, plantuml, graphviz and so on. ' });
+        containerEl.createEl('p', { text: 'This plugin supports customing target from mermaid, plantuml, graphviz, image and so on. ' });
 
         // 创建一个 div 来包含输入框和按钮，并使用 Flexbox 布局
         const kvRow = containerEl.createDiv({ cls: 'kv-row' });
 
         // 创建第一个输入框 (Key)
-        const keyInput = kvRow.createEl('input', { type: 'text', placeholder: 'Input Diagram Source please' });
+        const keyInput = kvRow.createEl('input', { type: 'text', placeholder: 'Input Key please' });
 
         // 创建第二个输入框 (Value)
         const valueInput = kvRow.createEl('input', { type: 'text', placeholder: 'Input Class Name please' });
-        const classname_fmt = 'classanme format: \'A-Za-z0-9\' or \'-\' and not start with number';
+        const classname_fmt = 'classanme format: start with \'A-Za-z\' or \'-\' and then  \'A-Za-z0-9\' or \'-\'';
         valueInput.setAttr('title', classname_fmt);
 
         // 是否容器
@@ -231,7 +231,7 @@ class MermaidPopupSettingTab extends PluginSettingTab {
                 // 判断 key 是否已存在
                 if(this.plugin.settings.kvMapReserved[key] || this.plugin.settings.kvMap[key] || this.plugin.settings.kvMapDefault[key] )
                 {
-                    new Notice('Diagram Source exists');
+                    new Notice('Target exists');
                     return;
                 }
 
@@ -245,14 +245,14 @@ class MermaidPopupSettingTab extends PluginSettingTab {
                 await this.plugin.saveSettings();
                 //this.displayKvMap(containerEl);
                 this.display();
-                new Notice(`Saved Diagram Source And Class Name: ${key} -> ${value}`);
+                new Notice(`Saved Target And Class Name: ${key} -> ${value}`);
 
                 // 清空输入框
                 keyInput.value = '';
                 valueInput.value = '';
                 isContainer.value = '';
             } else {
-                new Notice('Input Diagram Source and Class Name please');
+                new Notice('Input Target and Class Name please');
             }
         };
 
@@ -287,7 +287,7 @@ class MermaidPopupSettingTab extends PluginSettingTab {
     }
     
     isValidClassname(classname:string) {
-        return /^[A-Za-z0-9-]+$/.test(classname);
+        return /^[A-Za-z-][A-Za-z0-9-]*$/.test(classname);
     }
 
     addClass(_container:HTMLElement, _targetElementClass:string, _class:string){
@@ -374,7 +374,7 @@ class MermaidPopupSettingTab extends PluginSettingTab {
             // 创建标题栏
             const thead = table.createEl('thead');
             const headerRow = thead.createEl('tr');
-            headerRow.createEl('th', { text: 'Diagram Source' });
+            headerRow.createEl('th', { text: 'Target' });
             headerRow.createEl('th', { text: 'Class Name' });
             headerRow.createEl('th', { text: 'Is Container' });
             headerRow.createEl("th", { text: "Actions" }); // 添加 "Actions" 标题列
@@ -412,7 +412,7 @@ class MermaidPopupSettingTab extends PluginSettingTab {
                 });            
             });
         } else {
-            kvDisplay.setText('No Diagram Setting Saved');
+            kvDisplay.setText('No Target Setting Saved');
         }
     }
 }
