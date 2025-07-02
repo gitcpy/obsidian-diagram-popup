@@ -74,7 +74,7 @@ const productionConfig = {
         }),
         terser({
             compress: false,
-            mangle: true,
+            mangle: false,
         }),
         visualizer({
             open: false,
