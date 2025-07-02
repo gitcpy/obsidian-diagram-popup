@@ -458,8 +458,18 @@ export default class MermaidPopupPlugin extends Plugin {
 
     adjustDiagramWidthAndHeight_ToContainer(container: HTMLElement, isInPopup:boolean=false){
         let coreDeepEle = this.getCoreDeepElement(container) as HTMLElement;
+
+        // coreDeepEle 为空，则说明是容器类型
         if (!coreDeepEle)
+        {
+            let coreEle = this.getCoreElement(container) as HTMLElement;
+            if(!coreEle)
+                return;
+            let dg_h_val = parseInt(this.settings.DiagramHeightVal);
+            if (dg_h_val < this.getHeight(coreEle))
+                this.setHeight(coreEle, dg_h_val.toString());
             return;
+        }
 
         let coreDeep_w = this.getWidth(coreDeepEle);
         let coreDeep_h = this.getHeight(coreDeepEle);
