@@ -255,7 +255,7 @@ export default class MermaidPopupPlugin extends Plugin {
     } 
   
     /**
-     * 转义数字开头的 class 名称
+     * 获取数组 目标元素 和 是否容器标志
      * @param {HTMLElement} contentEl - MD容器
      * @return {Array<[HTMLElement, string]>} - 返回数组 目标元素 和 是否容器标志）
      */
@@ -349,10 +349,8 @@ export default class MermaidPopupPlugin extends Plugin {
             return;
 
         let {popupButtonClass} = this.getOpenBtnInMd_Mark();
-        let {popupButtonClass_edit} = this.getOpenBtnInMd_Mark_editMode();
 
         let popupButton;   
-        let popupButton_edit; 
         let flagContainer = target_and_flagContainer[1] == 'true';
 
         let targetContainer = flagContainer? target:target.parentElement as HTMLElement;
@@ -517,6 +515,14 @@ export default class MermaidPopupPlugin extends Plugin {
         return parseFloat(ele.getCssPropertyValue('height'));
     }
 
+    setWidth(ele:HTMLElement, w:string){
+        ele.setCssStyles({width: w + 'px'});
+    }
+
+    setHeight(ele:HTMLElement, h:string){
+        ele.setCssStyles({height: h + 'px'});
+    }    
+
     /**
      * 获取容器下的目标元素
      * @param {HTMLElement} container - 目标容器
@@ -533,7 +539,7 @@ export default class MermaidPopupPlugin extends Plugin {
     /**
      * 获取目标元素里深度内核，即svg或img等元素
      * @param {HTMLElement} container - 目标容器
-     * @return {Element | null} - 返回 目标元素里深度内核 ）
+     * @return {HTMLElement | null} - 返回 目标元素里深度内核 ）
      */
     getCoreDeepElement(container: HTMLElement){
         let core = this.getCoreElement(container);
@@ -690,37 +696,25 @@ export default class MermaidPopupPlugin extends Plugin {
         ele.setCssStyles({display:'none'});   
     }
 
-    adjustInPopup(containerEle:HTMLElement)
+    /**
+     * 隐藏弹窗中的编辑按钮等
+     * @param {HTMLElement} containerInPopupEle - 弹窗容器
+     */
+    adjustInPopup(containerInPopupEle:HTMLElement)
     {
         let mark = this.getOpenBtnInMd_Mark();
-        let btn = containerEle.querySelector('.'+mark.popupButtonClass) as HTMLElement;
-        if (btn == null)
+        let btn_in_p = containerInPopupEle.querySelector('.'+mark.popupButtonClass) as HTMLElement;
+        if (btn_in_p == null)
             return;
-        let coreEle = btn.nextElementSibling as HTMLElement;
-        if (coreEle == null)
-            return;        
-        let containerWidth = containerEle.getCssPropertyValue('width');
-        let coreWidth = coreEle.getCssPropertyValue('width');
-
-        if (coreWidth < containerWidth)
-            coreEle.setCssStyles({width: 'auto'});
-
+        let coreEle_in_p = btn_in_p.nextElementSibling as HTMLElement;
+        if (coreEle_in_p == null)
+            return; 
+        
         // 隐藏无关按钮
-        let btnAfterCore = coreEle.nextElementSibling as HTMLElement;
+        let btnAfterCore = coreEle_in_p.nextElementSibling as HTMLElement;
         if (btnAfterCore)
         {
             this.hideElement(btnAfterCore);
-        }
-
-        // 设置底层宽度自动，以便居中
-        let coreDeep = this.getCoreDeepElement(containerEle) as HTMLElement;
-        if (coreDeep == null)
-            return;
-        let cd_w = this.getWidth(coreDeep);
-        let container_w = this.getWidth(containerEle);
-        if (cd_w < container_w)
-        {
-            coreDeep.setCssStyles({width: container_w +'px'});
         }
     }
 
@@ -761,7 +755,12 @@ export default class MermaidPopupPlugin extends Plugin {
     isThemeDark(){
         return document.body.classList.contains('theme-dark');
     }
-        
+ 
+    /**
+     * 调整弹窗中元素的尺寸以及居中
+     * @param {HTMLElement} containerInPopupEle - 弹窗容器
+     * @param {HTMLElement} container - MD容器
+     */    
     setPopupSize(containerInPopup:HTMLElement, container:HTMLElement){
         let multiVal = parseFloat(this.settings.PopupSizeInitValue);
         if (typeof multiVal != "number"){
@@ -770,11 +769,11 @@ export default class MermaidPopupPlugin extends Plugin {
 
         let width_tar_md = this.getWidth(container);
         let height_tar_md = this.getHeight(container);   
-        let _diag_md = this.getCoreElement(container) as HTMLElement;
-        let width_diag_md = this.getWidth(_diag_md);
-        let height_diag_md = this.getHeight(_diag_md);
+        let core = this.getCoreElement(container) as HTMLElement;
+        let core_w = this.getWidth(core);
+        let core_h = this.getHeight(core);
  
-        let _diag_inpopup = this.getCoreElement(containerInPopup) as HTMLElement;
+        let core_in_p = this.getCoreElement(containerInPopup) as HTMLElement;
 
         containerInPopup.setCssStyles({
             width: width_tar_md + 'px',
@@ -782,10 +781,19 @@ export default class MermaidPopupPlugin extends Plugin {
             transform: `scale(${multiVal})`
         });
 
-        _diag_inpopup.setCssStyles({
-            width: width_diag_md + 'px',
-            height: height_diag_md + 'px'
+        core_in_p.setCssStyles({
+            width: core_w + 'px',
+            height: core_h + 'px'
         });
+
+        // md中， core deep 的宽度如果比 core 小，则自动左对齐
+        // popin 中， core deep 的宽度如果比 core 小，则居中
+        let coreDeep_in_p = this.getCoreDeepElement(containerInPopup) as HTMLElement;
+        let coreDeep_in_p_w = this.getWidth(coreDeep_in_p);
+        if (coreDeep_in_p_w < core_w)
+        {
+            core_in_p.setCssStyles({textAlign: 'center'});
+        }
 
     }
 
