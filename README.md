@@ -93,19 +93,19 @@ Click "Add Plugin", A fews seconds later, the installing will be completed.
 
     5. Set image max height in md tab page.
        
-       <img src='https://github.com/gitcpy/obsidian-diagram-popup/blob/main/gifs/eg-1-5-max%20height.jpg' />
+      <img src='https://github.com/gitcpy/obsidian-diagram-popup/blob/main/gifs/eg-1-5-max%20height.jpg' />
        
        Image after height setting.
        
-       <img src='https://github.com/gitcpy/obsidian-diagram-popup/blob/main/gifs/eg-1-6-image%20matches%20the%20max%20height.jpg' height='400' />
+      <img src='https://github.com/gitcpy/obsidian-diagram-popup/blob/main/gifs/eg-1-6-image%20matches%20the%20max%20height.jpg' height='400' />
 
     7. Set the open button
        
        Settinggs
        
-       <img src='https://github.com/gitcpy/obsidian-diagram-popup/blob/main/gifs/eg-1-8-settings%20of%20button%20pos.jpg' />
+      <img src='https://github.com/gitcpy/obsidian-diagram-popup/blob/main/gifs/eg-1-8-settings%20of%20button%20pos.jpg' />
        
        After setting
        
-       <img src='https://github.com/gitcpy/obsidian-diagram-popup/blob/main/gifs/eg-1-9-button%20pos%20after%20settings.jpg'  />
+      <img src='https://github.com/gitcpy/obsidian-diagram-popup/blob/main/gifs/eg-1-9-button%20pos%20after%20settings.jpg'  />
        
